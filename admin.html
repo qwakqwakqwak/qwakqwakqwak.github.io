@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Redirect Admin</title>
+  <title>QR Code Admin Panel</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Roboto', sans-serif;
-      background-color: #f0f0f5;
+      background-color: #f4f6f9;
       margin: 0;
       padding: 0;
       display: flex;
@@ -20,22 +20,33 @@
       background: white;
       padding: 30px;
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      width: 400px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      width: 420px;
+      max-width: 100%;
     }
     h2 {
       text-align: center;
       color: #333;
+      font-size: 24px;
     }
     .input-group {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: 500;
+      color: #333;
     }
     input {
       width: 100%;
-      padding: 10px;
-      border: 2px solid #ccc;
-      border-radius: 4px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
       font-size: 16px;
+      margin-top: 5px;
+    }
+    input:focus {
+      outline: none;
+      border-color: #007BFF;
     }
     button {
       width: 100%;
@@ -43,9 +54,10 @@
       background-color: #007BFF;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
+      margin-top: 10px;
     }
     button:hover {
       background-color: #0056b3;
@@ -53,6 +65,29 @@
     .error {
       color: red;
       text-align: center;
+      font-size: 14px;
+    }
+    .history {
+      margin-top: 20px;
+      border-top: 2px solid #eee;
+      padding-top: 15px;
+    }
+    .history h3 {
+      font-size: 18px;
+      color: #333;
+    }
+    .history ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    .history li {
+      padding: 5px 0;
+      border-bottom: 1px solid #eee;
+      color: #555;
+    }
+    .history li span {
+      color: #007BFF;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -61,47 +96,93 @@
   <div class="container">
     <h2>QR Code Admin Panel</h2>
     <div class="input-group">
-      <label for="password">Admin Password</label>
-      <input type="password" id="password" placeholder="Enter admin password">
+      <label for="current-password">Current Admin Password</label>
+      <input type="password" id="current-password" placeholder="Enter current password">
+    </div>
+    <div class="input-group">
+      <label for="new-password">New Admin Password</label>
+      <input type="password" id="new-password" placeholder="Enter new password">
     </div>
     <div class="input-group">
       <label for="url">New Redirect URL</label>
       <input type="url" id="url" placeholder="Enter new URL">
     </div>
-    <button id="updateButton">Update Redirect</button>
+    <button id="updateButton">Update Redirect and Password</button>
     <p class="error" id="error-message"></p>
+    <div class="history">
+      <h3>History</h3>
+      <ul id="history-list"></ul>
+    </div>
   </div>
 
   <script>
-    const adminPassword = "yourpassword"; // Change this to your own password
-    const redirectStorageKey = "redirect_url"; // LocalStorage key for redirect URL
+    const adminPasswordKey = "admin_password";
+    const redirectStorageKey = "redirect_url";
+    const passwordHistoryKey = "password_history";
+    const redirectHistoryKey = "redirect_history";
 
-    // Attach event listener to button
+    // Load stored data
+    const storedPassword = localStorage.getItem(adminPasswordKey) || "defaultpassword"; // Default password
+    const passwordHistory = JSON.parse(localStorage.getItem(passwordHistoryKey)) || [];
+    const redirectHistory = JSON.parse(localStorage.getItem(redirectHistoryKey)) || [];
+
+    // Display password and redirect history
+    displayHistory();
+
+    // Attach event listener to the button
     document.getElementById("updateButton").addEventListener("click", updateRedirect);
 
     function updateRedirect() {
-      const password = document.getElementById("password").value;
+      const currentPassword = document.getElementById("current-password").value;
+      const newPassword = document.getElementById("new-password").value;
       const newUrl = document.getElementById("url").value;
       const errorMessage = document.getElementById("error-message");
 
       // Reset error message
       errorMessage.textContent = "";
 
-      // Check password
-      if (password !== adminPassword) {
-        errorMessage.textContent = "Incorrect password!";
+      // Validate current password
+      if (currentPassword !== storedPassword) {
+        errorMessage.textContent = "Incorrect current password!";
         return;
       }
 
-      // Check if URL is valid
-      if (!newUrl) {
-        errorMessage.textContent = "Please enter a valid URL.";
-        return;
+      // Update password if new one is provided
+      if (newPassword) {
+        localStorage.setItem(adminPasswordKey, newPassword);
+        passwordHistory.push({ password: newPassword, date: new Date().toLocaleString() });
+        localStorage.setItem(passwordHistoryKey, JSON.stringify(passwordHistory));
       }
 
-      // Save the new URL in localStorage
-      localStorage.setItem(redirectStorageKey, newUrl);
-      alert("Redirect URL updated successfully!");
+      // Update URL if provided
+      if (newUrl) {
+        localStorage.setItem(redirectStorageKey, newUrl);
+        redirectHistory.push({ url: newUrl, date: new Date().toLocaleString() });
+        localStorage.setItem(redirectHistoryKey, JSON.stringify(redirectHistory));
+      }
+
+      alert("Redirect URL and password updated successfully!");
+      displayHistory();
+    }
+
+    // Function to display history
+    function displayHistory() {
+      const historyList = document.getElementById("history-list");
+      historyList.innerHTML = "";
+
+      // Display password history
+      passwordHistory.forEach(item => {
+        const listItem = document.createElement("li");
+        listItem.textContent = `Password updated to: ${item.password} on ${item.date}`;
+        historyList.appendChild(listItem);
+      });
+
+      // Display URL history
+      redirectHistory.forEach(item => {
+        const listItem = document.createElement("li");
+        listItem.innerHTML = `Redirect URL set to: <span>${item.url}</span> on ${item.date}`;
+        historyList.appendChild(listItem);
+      });
     }
   </script>
 </body>
