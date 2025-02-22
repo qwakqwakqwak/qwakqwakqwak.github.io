@@ -6,7 +6,6 @@
   <title>QR Code Admin Panel</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* (Your existing styles remain unchanged) */
     body {
       font-family: 'Roboto', sans-serif;
       background-color: #1e1e1e;
@@ -27,9 +26,18 @@
       max-width: 100%;
       transition: all 0.3s ease;
     }
-    h2 { text-align: center; color: #fff; font-size: 24px; }
-    .input-group { margin-bottom: 20px; }
-    label { font-weight: 500; color: #ddd; }
+    h2 {
+      text-align: center;
+      color: #fff;
+      font-size: 24px;
+    }
+    .input-group {
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: 500;
+      color: #ddd;
+    }
     input {
       width: 100%;
       padding: 12px;
@@ -40,7 +48,10 @@
       background-color: #333;
       color: #fff;
     }
-    input:focus { outline: none; border-color: #007BFF; }
+    input:focus {
+      outline: none;
+      border-color: #007BFF;
+    }
     button {
       width: 100%;
       padding: 12px;
@@ -52,157 +63,69 @@
       cursor: pointer;
       margin-top: 10px;
     }
-    button:hover { background-color: #0056b3; }
-    .error { color: red; text-align: center; font-size: 14px; }
-    .history {
-      margin-top: 20px;
-      border-top: 2px solid #444;
-      padding-top: 15px;
-      color: #ccc;
+    button:hover {
+      background-color: #0056b3;
     }
-    .history h3 { font-size: 18px; color: #fff; }
-    .history ul { list-style-type: none; padding-left: 0; }
-    .history li {
-      padding: 5px 0;
-      border-bottom: 1px solid #444;
-      color: #ccc;
-    }
-    .history li span { color: #007BFF; font-weight: bold; }
-    .collapsible {
-      background-color: #333;
-      color: #fff;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 20px;
-      cursor: pointer;
-      width: 100%;
+    .error {
+      color: red;
       text-align: center;
-      font-size: 18px;
-      font-weight: 600;
+      font-size: 14px;
+      margin-top: 10px;
     }
-    .content { display: none; padding-top: 10px; }
-    .logout-btn { background-color: #e74c3c; margin-top: 15px; }
-    .logout-btn:hover { background-color: #c0392b; }
-    .reset-history-btn { background-color: #f39c12; margin-top: 15px; }
-    .reset-history-btn:hover { background-color: #e67e22; }
   </style>
 </head>
 <body>
-
   <div class="container">
     <h2>QR Code Admin Panel</h2>
     
-    <!-- Admin Password Authentication -->
+    <!-- Global Admin Token Input -->
     <div class="input-group">
-      <label for="admin-password">Admin Password</label>
-      <input type="password" id="admin-password" placeholder="Enter admin password">
+      <label for="admin-token">Admin Token</label>
+      <input type="password" id="admin-token" placeholder="Enter your global admin token">
     </div>
-    <button id="authenticateButton">Authenticate</button>
-    <p class="error" id="auth-error-message"></p>
 
-    <!-- Admin Features (Hidden Initially) -->
-    <div id="admin-panel" style="display:none;">
-      <div class="input-group">
-        <label for="new-password">New Admin Password</label>
-        <input type="password" id="new-password" placeholder="Enter new admin token (optional)">
-      </div>
-      <div class="input-group">
-        <label for="url">New Redirect URL</label>
-        <input type="url" id="url" placeholder="Enter new URL">
-      </div>
-      <button id="updateButton">Update Redirect and Password</button>
-      <button id="resetButton">Reset Password to Default</button>
-      <button class="logout-btn" id="logoutButton">Logout</button>
-      <p class="error" id="error-message"></p>
-
-      <div class="collapsible" id="collapsible">Admin Settings</div>
-      <div class="content" id="admin-content">
-        <div class="history">
-          <h3>History</h3>
-          <ul id="history-list"></ul>
-        </div>
-        <button class="reset-history-btn" id="resetHistoryButton">Clear History</button>
-      </div>
+    <!-- New Redirect URL Input -->
+    <div class="input-group">
+      <label for="url">New Redirect URL</label>
+      <input type="url" id="url" placeholder="Enter new redirect URL">
     </div>
+    
+    <button id="updateButton">Update Redirect</button>
+    <p class="error" id="error-message"></p>
   </div>
 
   <script>
-    const adminPasswordKey = "admin_password";
-    const passwordHistoryKey = "password_history";
-    const redirectHistoryKey = "redirect_history";
-    // Default admin token (for local panel auth)
-    const defaultPassword = "defaultpassword";
-    let storedPassword = localStorage.getItem(adminPasswordKey) || defaultPassword;
-    const passwordHistory = JSON.parse(localStorage.getItem(passwordHistoryKey)) || [];
-    const redirectHistory = JSON.parse(localStorage.getItem(redirectHistoryKey)) || [];
-
-    displayHistory();
-
-    document.getElementById("authenticateButton").addEventListener("click", authenticateAdmin);
-    document.getElementById("updateButton").addEventListener("click", updateRedirect);
-    document.getElementById("resetButton").addEventListener("click", resetPassword);
-    document.getElementById("logoutButton").addEventListener("click", logout);
-    document.getElementById("resetHistoryButton").addEventListener("click", resetHistory);
-
-    function authenticateAdmin() {
-      const enteredPassword = document.getElementById("admin-password").value;
-      const errorMessage = document.getElementById("auth-error-message");
-      if (enteredPassword === storedPassword) {
-        document.getElementById("admin-panel").style.display = "block";
-        errorMessage.textContent = "";
-      } else {
-        errorMessage.textContent = "Incorrect password!";
-      }
-    }
-
-    function updateRedirect() {
-      const newPassword = document.getElementById("new-password").value;
+    document.getElementById("updateButton").addEventListener("click", () => {
+      const adminToken = document.getElementById("admin-token").value;
       const newUrl = document.getElementById("url").value;
       const errorMessage = document.getElementById("error-message");
       errorMessage.textContent = "";
-
-      // Update the local admin token if a new one is provided
-      if (newPassword) {
-        storedPassword = newPassword;
-        localStorage.setItem(adminPasswordKey, newPassword);
-        passwordHistory.push({ password: "******", date: new Date().toLocaleString() });
-        localStorage.setItem(passwordHistoryKey, JSON.stringify(passwordHistory));
+      
+      if (!adminToken || !newUrl) {
+        errorMessage.textContent = "Please fill in both fields.";
+        return;
       }
-
-      // Update the global redirect URL via Cloudflare Worker
-      if (newUrl) {
-        fetch("https://qr.camerontrain.workers.dev", {  // Replace with your actual Worker URL
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Use newPassword if provided; otherwise, use storedPassword
-            "x-admin-token": newPassword || storedPassword
-          },
-          body: JSON.stringify({ redirect_url: newUrl })
-        })
-        .then(response => {
-          if (response.ok) {
-            redirectHistory.push({ url: newUrl, date: new Date().toLocaleString() });
-            localStorage.setItem(redirectHistoryKey, JSON.stringify(redirectHistory));
-            alert("Redirect URL updated successfully!");
-            displayHistory();
-          } else {
-            return response.text().then(text => { throw new Error(text); });
-          }
-        })
-        .catch(error => {
-          errorMessage.textContent = "Failed to update redirect URL: " + error.message;
-        });
-      }
-    }
-
-    function resetPassword() {
-      storedPassword = defaultPassword;
-      localStorage.setItem(adminPasswordKey, defaultPassword);
-      passwordHistory.push({ password: "******", date: new Date().toLocaleString() });
-      localStorage.setItem(passwordHistoryKey, JSON.stringify(passwordHistory));
-      alert("Password has been reset to default!");
-      displayHistory();
-    }
-
-    function logo
+      
+      // Replace the URL below with your actual Cloudflare Worker URL.
+      fetch("https://qr.camerontrain.workers.dev", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": adminToken
+        },
+        body: JSON.stringify({ redirect_url: newUrl })
+      })
+      .then(response => {
+        if (response.ok) {
+          alert("Redirect URL updated successfully!");
+        } else {
+          return response.text().then(text => { throw new Error(text); });
+        }
+      })
+      .catch(error => {
+        errorMessage.textContent = "Failed to update redirect URL: " + error.message;
+      });
+    });
+  </script>
+</body>
+</html>
