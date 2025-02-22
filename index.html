@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Code Redirect</title>
   <script>
-    window.location.href = localStorage.getItem("redirect_url") || "https://default.com"; // Default fallback URL
+    // Get the redirect URL from localStorage, or fall back to a default URL
+    const redirectUrl = localStorage.getItem("redirect_url") || "https://default.com";
+    // Redirect the user to the specified URL
+    window.location.href = redirectUrl;
   </script>
 </head>
 <body>
