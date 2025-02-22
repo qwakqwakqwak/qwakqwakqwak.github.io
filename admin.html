@@ -6,6 +6,7 @@
   <title>QR Code Admin Panel</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    /* (Your existing styles remain unchanged) */
     body {
       font-family: 'Roboto', sans-serif;
       background-color: #1e1e1e;
@@ -26,18 +27,9 @@
       max-width: 100%;
       transition: all 0.3s ease;
     }
-    h2 {
-      text-align: center;
-      color: #fff;
-      font-size: 24px;
-    }
-    .input-group {
-      margin-bottom: 20px;
-    }
-    label {
-      font-weight: 500;
-      color: #ddd;
-    }
+    h2 { text-align: center; color: #fff; font-size: 24px; }
+    .input-group { margin-bottom: 20px; }
+    label { font-weight: 500; color: #ddd; }
     input {
       width: 100%;
       padding: 12px;
@@ -48,10 +40,7 @@
       background-color: #333;
       color: #fff;
     }
-    input:focus {
-      outline: none;
-      border-color: #007BFF;
-    }
+    input:focus { outline: none; border-color: #007BFF; }
     button {
       width: 100%;
       padding: 12px;
@@ -63,37 +52,22 @@
       cursor: pointer;
       margin-top: 10px;
     }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .error {
-      color: red;
-      text-align: center;
-      font-size: 14px;
-    }
+    button:hover { background-color: #0056b3; }
+    .error { color: red; text-align: center; font-size: 14px; }
     .history {
       margin-top: 20px;
       border-top: 2px solid #444;
       padding-top: 15px;
       color: #ccc;
     }
-    .history h3 {
-      font-size: 18px;
-      color: #fff;
-    }
-    .history ul {
-      list-style-type: none;
-      padding-left: 0;
-    }
+    .history h3 { font-size: 18px; color: #fff; }
+    .history ul { list-style-type: none; padding-left: 0; }
     .history li {
       padding: 5px 0;
       border-bottom: 1px solid #444;
       color: #ccc;
     }
-    .history li span {
-      color: #007BFF;
-      font-weight: bold;
-    }
+    .history li span { color: #007BFF; font-weight: bold; }
     .collapsible {
       background-color: #333;
       color: #fff;
@@ -106,24 +80,11 @@
       font-size: 18px;
       font-weight: 600;
     }
-    .content {
-      display: none;
-      padding-top: 10px;
-    }
-    .logout-btn {
-      background-color: #e74c3c;
-      margin-top: 15px;
-    }
-    .logout-btn:hover {
-      background-color: #c0392b;
-    }
-    .reset-history-btn {
-      background-color: #f39c12;
-      margin-top: 15px;
-    }
-    .reset-history-btn:hover {
-      background-color: #e67e22;
-    }
+    .content { display: none; padding-top: 10px; }
+    .logout-btn { background-color: #e74c3c; margin-top: 15px; }
+    .logout-btn:hover { background-color: #c0392b; }
+    .reset-history-btn { background-color: #f39c12; margin-top: 15px; }
+    .reset-history-btn:hover { background-color: #e67e22; }
   </style>
 </head>
 <body>
@@ -143,7 +104,7 @@
     <div id="admin-panel" style="display:none;">
       <div class="input-group">
         <label for="new-password">New Admin Password</label>
-        <input type="password" id="new-password" placeholder="Enter new password">
+        <input type="password" id="new-password" placeholder="Enter new admin token (optional)">
       </div>
       <div class="input-group">
         <label for="url">New Redirect URL</label>
@@ -167,41 +128,25 @@
 
   <script>
     const adminPasswordKey = "admin_password";
-    const redirectStorageKey = "redirect_url";
     const passwordHistoryKey = "password_history";
     const redirectHistoryKey = "redirect_history";
-
-    // Default password
+    // Default admin token (for local panel auth)
     const defaultPassword = "defaultpassword";
-
-    // Load stored data
-    const storedPassword = localStorage.getItem(adminPasswordKey) || defaultPassword;
+    let storedPassword = localStorage.getItem(adminPasswordKey) || defaultPassword;
     const passwordHistory = JSON.parse(localStorage.getItem(passwordHistoryKey)) || [];
     const redirectHistory = JSON.parse(localStorage.getItem(redirectHistoryKey)) || [];
 
-    // Display password and redirect history
     displayHistory();
 
-    // Attach event listener to the authenticate button
     document.getElementById("authenticateButton").addEventListener("click", authenticateAdmin);
-
-    // Attach event listener to the update button
     document.getElementById("updateButton").addEventListener("click", updateRedirect);
-
-    // Attach event listener to the reset button
     document.getElementById("resetButton").addEventListener("click", resetPassword);
-
-    // Attach event listener to the logout button
     document.getElementById("logoutButton").addEventListener("click", logout);
-
-    // Attach event listener to the reset history button
     document.getElementById("resetHistoryButton").addEventListener("click", resetHistory);
 
-    // Function to authenticate the admin
     function authenticateAdmin() {
       const enteredPassword = document.getElementById("admin-password").value;
       const errorMessage = document.getElementById("auth-error-message");
-
       if (enteredPassword === storedPassword) {
         document.getElementById("admin-panel").style.display = "block";
         errorMessage.textContent = "";
@@ -210,83 +155,54 @@
       }
     }
 
-    // Function to update the redirect URL and password
     function updateRedirect() {
       const newPassword = document.getElementById("new-password").value;
       const newUrl = document.getElementById("url").value;
       const errorMessage = document.getElementById("error-message");
-
-      // Reset error message
       errorMessage.textContent = "";
 
-      // Update password if new one is provided
+      // Update the local admin token if a new one is provided
       if (newPassword) {
+        storedPassword = newPassword;
         localStorage.setItem(adminPasswordKey, newPassword);
-        passwordHistory.push({ password: newPassword, date: new Date().toLocaleString() });
+        passwordHistory.push({ password: "******", date: new Date().toLocaleString() });
         localStorage.setItem(passwordHistoryKey, JSON.stringify(passwordHistory));
       }
 
-      // Update URL if provided
+      // Update the global redirect URL via Cloudflare Worker
       if (newUrl) {
-        localStorage.setItem(redirectStorageKey, newUrl);
-        redirectHistory.push({ url: newUrl, date: new Date().toLocaleString() });
-        localStorage.setItem(redirectHistoryKey, JSON.stringify(redirectHistory));
+        fetch("https://your-worker-url.workers.dev", {  // Replace with your actual Worker URL
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Use newPassword if provided; otherwise, use storedPassword
+            "x-admin-token": newPassword || storedPassword
+          },
+          body: JSON.stringify({ redirect_url: newUrl })
+        })
+        .then(response => {
+          if (response.ok) {
+            redirectHistory.push({ url: newUrl, date: new Date().toLocaleString() });
+            localStorage.setItem(redirectHistoryKey, JSON.stringify(redirectHistory));
+            alert("Redirect URL updated successfully!");
+            displayHistory();
+          } else {
+            return response.text().then(text => { throw new Error(text); });
+          }
+        })
+        .catch(error => {
+          errorMessage.textContent = "Failed to update redirect URL: " + error.message;
+        });
       }
-
-      alert("Redirect URL and password updated successfully!");
-      displayHistory();
     }
 
-    // Function to reset password to default
     function resetPassword() {
+      storedPassword = defaultPassword;
       localStorage.setItem(adminPasswordKey, defaultPassword);
-      passwordHistory.push({ password: defaultPassword, date: new Date().toLocaleString() });
+      passwordHistory.push({ password: "******", date: new Date().toLocaleString() });
       localStorage.setItem(passwordHistoryKey, JSON.stringify(passwordHistory));
-
       alert("Password has been reset to default!");
       displayHistory();
     }
 
-    // Function to log out (reset the session)
-    function logout() {
-      document.getElementById("admin-panel").style.display = "none";
-      document.getElementById("admin-password").value = "";
-      localStorage.removeItem("admin_password");
-    }
-
-    // Function to reset history
-    function resetHistory() {
-      localStorage.removeItem(passwordHistoryKey);
-      localStorage.removeItem(redirectHistoryKey);
-      alert("History has been cleared!");
-      displayHistory();
-    }
-
-    // Function to display history
-    function displayHistory() {
-      const historyList = document.getElementById("history-list");
-      historyList.innerHTML = "";
-
-      // Display password history (censored)
-      passwordHistory.forEach(item => {
-        const listItem = document.createElement("li");
-        listItem.textContent = `Password updated to: ****** on ${item.date}`;
-        historyList.appendChild(listItem);
-      });
-
-      // Display URL history
-      redirectHistory.forEach(item => {
-        const listItem = document.createElement("li");
-        listItem.innerHTML = `Redirect URL set to: <span>${item.url}</span> on ${item.date}`;
-        historyList.appendChild(listItem);
-      });
-    }
-
-    // Toggle collapsible content
-    document.getElementById("collapsible").addEventListener("click", () => {
-      const content = document.getElementById("admin-content");
-      content.style.display = content.style.display === "none" ? "block" : "none";
-    });
-  </script>
-</body>
-</html>
+    function logo
