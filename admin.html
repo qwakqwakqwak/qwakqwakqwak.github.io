@@ -92,4 +92,164 @@
     }
     .history li span {
       color: #007BFF;
-      fon
+      font-weight: bold;
+    }
+    .collapsible {
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 20px;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .content {
+      display: none;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>QR Code Admin Panel</h2>
+    
+    <!-- Admin Password Authentication -->
+    <div class="input-group">
+      <label for="admin-password">Admin Password</label>
+      <input type="password" id="admin-password" placeholder="Enter admin password">
+    </div>
+    <button id="authenticateButton">Authenticate</button>
+    <p class="error" id="auth-error-message"></p>
+
+    <!-- Admin Features (Hidden Initially) -->
+    <div id="admin-panel" style="display:none;">
+      <div class="input-group">
+        <label for="new-password">New Admin Password</label>
+        <input type="password" id="new-password" placeholder="Enter new password">
+      </div>
+      <div class="input-group">
+        <label for="url">New Redirect URL</label>
+        <input type="url" id="url" placeholder="Enter new URL">
+      </div>
+      <button id="updateButton">Update Redirect and Password</button>
+      <button id="resetButton">Reset Password to Default</button>
+      <p class="error" id="error-message"></p>
+
+      <div class="collapsible" id="collapsible">Admin Settings</div>
+      <div class="content" id="admin-content">
+        <div class="history">
+          <h3>History</h3>
+          <ul id="history-list"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const adminPasswordKey = "admin_password";
+    const redirectStorageKey = "redirect_url";
+    const passwordHistoryKey = "password_history";
+    const redirectHistoryKey = "redirect_history";
+
+    // Default password
+    const defaultPassword = "defaultpassword";
+
+    // Load stored data
+    const storedPassword = localStorage.getItem(adminPasswordKey) || defaultPassword;
+    const passwordHistory = JSON.parse(localStorage.getItem(passwordHistoryKey)) || [];
+    const redirectHistory = JSON.parse(localStorage.getItem(redirectHistoryKey)) || [];
+
+    // Display password and redirect history
+    displayHistory();
+
+    // Attach event listener to the authenticate button
+    document.getElementById("authenticateButton").addEventListener("click", authenticateAdmin);
+
+    // Attach event listener to the update button
+    document.getElementById("updateButton").addEventListener("click", updateRedirect);
+
+    // Attach event listener to the reset button
+    document.getElementById("resetButton").addEventListener("click", resetPassword);
+
+    // Function to authenticate the admin
+    function authenticateAdmin() {
+      const enteredPassword = document.getElementById("admin-password").value;
+      const errorMessage = document.getElementById("auth-error-message");
+
+      if (enteredPassword === storedPassword) {
+        document.getElementById("admin-panel").style.display = "block";
+        errorMessage.textContent = "";
+      } else {
+        errorMessage.textContent = "Incorrect password!";
+      }
+    }
+
+    // Function to update the redirect URL and password
+    function updateRedirect() {
+      const newPassword = document.getElementById("new-password").value;
+      const newUrl = document.getElementById("url").value;
+      const errorMessage = document.getElementById("error-message");
+
+      // Reset error message
+      errorMessage.textContent = "";
+
+      // Update password if new one is provided
+      if (newPassword) {
+        localStorage.setItem(adminPasswordKey, newPassword);
+        passwordHistory.push({ password: newPassword, date: new Date().toLocaleString() });
+        localStorage.setItem(passwordHistoryKey, JSON.stringify(passwordHistory));
+      }
+
+      // Update URL if provided
+      if (newUrl) {
+        localStorage.setItem(redirectStorageKey, newUrl);
+        redirectHistory.push({ url: newUrl, date: new Date().toLocaleString() });
+        localStorage.setItem(redirectHistoryKey, JSON.stringify(redirectHistory));
+      }
+
+      alert("Redirect URL and password updated successfully!");
+      displayHistory();
+    }
+
+    // Function to reset password to default
+    function resetPassword() {
+      localStorage.setItem(adminPasswordKey, defaultPassword);
+      passwordHistory.push({ password: defaultPassword, date: new Date().toLocaleString() });
+      localStorage.setItem(passwordHistoryKey, JSON.stringify(passwordHistory));
+
+      alert("Password has been reset to default!");
+      displayHistory();
+    }
+
+    // Function to display history
+    function displayHistory() {
+      const historyList = document.getElementById("history-list");
+      historyList.innerHTML = "";
+
+      // Display password history
+      passwordHistory.forEach(item => {
+        const listItem = document.createElement("li");
+        listItem.textContent = `Password updated to: ${item.password} on ${item.date}`;
+        historyList.appendChild(listItem);
+      });
+
+      // Display URL history
+      redirectHistory.forEach(item => {
+        const listItem = document.createElement("li");
+        listItem.innerHTML = `Redirect URL set to: <span>${item.url}</span> on ${item.date}`;
+        historyList.appendChild(listItem);
+      });
+    }
+
+    // Toggle collapsible content
+    document.getElementById("collapsible").addEventListener("click", () => {
+      const content = document.getElementById("admin-content");
+      content.style.display = content.style.display === "none" ? "block" : "none";
+    });
+  </script>
+</body>
+</html>
