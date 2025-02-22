@@ -110,6 +110,20 @@
       display: none;
       padding-top: 10px;
     }
+    .logout-btn {
+      background-color: #e74c3c;
+      margin-top: 15px;
+    }
+    .logout-btn:hover {
+      background-color: #c0392b;
+    }
+    .reset-history-btn {
+      background-color: #f39c12;
+      margin-top: 15px;
+    }
+    .reset-history-btn:hover {
+      background-color: #e67e22;
+    }
   </style>
 </head>
 <body>
@@ -137,6 +151,7 @@
       </div>
       <button id="updateButton">Update Redirect and Password</button>
       <button id="resetButton">Reset Password to Default</button>
+      <button class="logout-btn" id="logoutButton">Logout</button>
       <p class="error" id="error-message"></p>
 
       <div class="collapsible" id="collapsible">Admin Settings</div>
@@ -145,6 +160,7 @@
           <h3>History</h3>
           <ul id="history-list"></ul>
         </div>
+        <button class="reset-history-btn" id="resetHistoryButton">Clear History</button>
       </div>
     </div>
   </div>
@@ -174,6 +190,12 @@
 
     // Attach event listener to the reset button
     document.getElementById("resetButton").addEventListener("click", resetPassword);
+
+    // Attach event listener to the logout button
+    document.getElementById("logoutButton").addEventListener("click", logout);
+
+    // Attach event listener to the reset history button
+    document.getElementById("resetHistoryButton").addEventListener("click", resetHistory);
 
     // Function to authenticate the admin
     function authenticateAdmin() {
@@ -225,15 +247,30 @@
       displayHistory();
     }
 
+    // Function to log out (reset the session)
+    function logout() {
+      document.getElementById("admin-panel").style.display = "none";
+      document.getElementById("admin-password").value = "";
+      localStorage.removeItem("admin_password");
+    }
+
+    // Function to reset history
+    function resetHistory() {
+      localStorage.removeItem(passwordHistoryKey);
+      localStorage.removeItem(redirectHistoryKey);
+      alert("History has been cleared!");
+      displayHistory();
+    }
+
     // Function to display history
     function displayHistory() {
       const historyList = document.getElementById("history-list");
       historyList.innerHTML = "";
 
-      // Display password history
+      // Display password history (censored)
       passwordHistory.forEach(item => {
         const listItem = document.createElement("li");
-        listItem.textContent = `Password updated to: ${item.password} on ${item.date}`;
+        listItem.textContent = `Password updated to: ****** on ${item.date}`;
         historyList.appendChild(listItem);
       });
 
