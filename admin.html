@@ -77,4 +77,29 @@
     const redirectStorageKey = "redirect_url"; // LocalStorage key for redirect URL
 
     function updateRedirect() {
-  
+      const password = document.getElementById("password").value;
+      const newUrl = document.getElementById("url").value;
+      const errorMessage = document.getElementById("error-message");
+
+      // Reset error message
+      errorMessage.textContent = "";
+
+      // Check password
+      if (password !== adminPassword) {
+        errorMessage.textContent = "Incorrect password!";
+        return;
+      }
+
+      // Check if URL is valid
+      if (!newUrl) {
+        errorMessage.textContent = "Please enter a valid URL.";
+        return;
+      }
+
+      // Save the new URL in localStorage
+      localStorage.setItem(redirectStorageKey, newUrl);
+      alert("Redirect URL updated successfully!");
+    }
+  </script>
+</body>
+</html>
