@@ -68,13 +68,16 @@
       <label for="url">New Redirect URL</label>
       <input type="url" id="url" placeholder="Enter new URL">
     </div>
-    <button onclick="updateRedirect()">Update Redirect</button>
+    <button id="updateButton">Update Redirect</button>
     <p class="error" id="error-message"></p>
   </div>
 
   <script>
     const adminPassword = "yourpassword"; // Change this to your own password
     const redirectStorageKey = "redirect_url"; // LocalStorage key for redirect URL
+
+    // Attach event listener to button
+    document.getElementById("updateButton").addEventListener("click", updateRedirect);
 
     function updateRedirect() {
       const password = document.getElementById("password").value;
